@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -104,7 +105,7 @@ public class Table
 		for(Long key:rows.keySet()){
 			Row r=rows.get(key);
 			Row newRow=new Row();
-			HashMap<String, String>rowValues=new HashMap<>();
+			LinkedHashMap<String, String>rowValues=new LinkedHashMap<>();
 			for(String s:getHeader()){
 				if(columns.contains(s)){
 					rowValues.put(s, r.getColumns().get(s));
@@ -113,14 +114,17 @@ public class Table
 			newRow.setColumns(rowValues);
 			table.insert(key,newRow);
 		}
-		//TODO: for test
 		table.print();
 		return table;
 	}
 
 	public void print()
 	{
-//		System.out.println(this);
+		if(this.getRows().size() == 0)
+		{
+			System.out.println("NO RESULT");
+			return;
+		}
 		for(String header:this.getHeader())
 		{
 			System.out.print(header+"\t");
@@ -135,7 +139,7 @@ public class Table
 	public void update(Table table,String columnName,String valueToCompute){
 		for(Long key:table.getRows().keySet()){
 			Row r=rows.get(key);
-			HashMap<String, String>columns=r.getColumns();
+			LinkedHashMap<String, String>columns=r.getColumns();
 			columns.replace(columnName,computeValue(valueToCompute));
 			r.setColumns(columns);
 			rows.replace(key,r);

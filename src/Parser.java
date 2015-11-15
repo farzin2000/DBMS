@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -82,7 +83,7 @@ public class Parser
 		{
 			cols.add(string);
 		}
-		System.out.println(cols);
+//		System.out.println(cols);
 		String tableName = tokens[3];
 		String whereClause = "";
 		for (int i = 5; i < tokens.length; i++) 
@@ -133,7 +134,7 @@ public class Parser
 	{
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		Row r = new Row();
-		HashMap<String, String> cols = new HashMap<>();
+		LinkedHashMap<String, String> cols = new LinkedHashMap<>();
 		int index = 0;
 		
 		for (String colName : selectedTable.getHeader()) 
@@ -143,6 +144,7 @@ public class Parser
 			cols.put(colName, query.split(",")[index].replace("\"", ""));
 			index++;
 		}
+		
 		r.setColumns(cols);
 		selectedTable.insert(r);
 		return "RECORD INSERTED";

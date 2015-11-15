@@ -1,15 +1,16 @@
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class Row
 {
-	private HashMap<String, String>columns = new HashMap<>();
+	private LinkedHashMap<String, String>columns = new LinkedHashMap<>();
 
 
-	public HashMap<String, String> getColumns() {
+	public LinkedHashMap<String, String> getColumns() {
 		return columns;
 	}
 
-	public void setColumns(HashMap<String, String> row) {
+	public void setColumns(LinkedHashMap<String, String> row) {
 		this.columns = row;
 	}
 	@Override

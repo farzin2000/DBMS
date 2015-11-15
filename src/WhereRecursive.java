@@ -4,61 +4,61 @@ import java.util.LinkedList;
 public class WhereRecursive {
 
 	static Table table;
-//	public static void main(String[] args) {
-//		//		System.out.println(ReadCommand("(TRUE) OR ((FALSE) AND (FALSE)) "));
-////		LinkedList<String> header = new LinkedList<>();
-////		header.add("A");
-////		header.add("B");
-////		Table t = new Table("test", header, null);
-////		Row r1 = new Row();
-////		LinkedList<String> r1Row = new LinkedList<>();
-////		r1Row.add("1");
-////		r1Row.add("2");
-////		r1.setColumns(r1Row);
-////		Row r2 = new Row();
-////		LinkedList<String> r2Row = new LinkedList<>();
-////		r2Row.add("1");
-////		r2Row.add("4");
-////		r2.setRow(r2Row);
-////		LinkedList<Row> rows = new LinkedList<>();
-////		rows.add(r1);
-////		rows.add(r2);
-////		t.setRows(rows);
-////		t.setHeader(header);
-//		LinkedList<String> cols= new LinkedList<>();
-//		cols.add("name");
-//		cols.add("family");
-//		Table table = new Table("table1", cols, null);
-//		Row toInsert=new Row();
-//		HashMap<String, String>row=new HashMap<>();
-//		row.put("name", "borna");
-//		row.put("family", "ghtb");
-//		toInsert.setColumns(row);
-//		table.setHeader(cols);
-//		
-//		table.insert(toInsert);
-//		
-//		toInsert=new Row();
-//		row=new HashMap<>();
-//		row.put("name", "mohi");
-//		row.put("family", "kjhgf");
-//		toInsert.setColumns(row);
-//		
-//		table.insert(toInsert);
-////		System.out.println(table.getRows().get(1));
-//		
-////		table.print();
-//		
-//		WhereRecursive wr = new WhereRecursive(table);
-//		try {
-//			System.out.println(wr.ReadCommand("(name=mohi) OR (family=ghtb)", table));
-//			
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			// TODO: handle exception
-//		}
-//
-//	}
+	//	public static void main(String[] args) {
+	//		//		System.out.println(ReadCommand("(TRUE) OR ((FALSE) AND (FALSE)) "));
+	////		LinkedList<String> header = new LinkedList<>();
+	////		header.add("A");
+	////		header.add("B");
+	////		Table t = new Table("test", header, null);
+	////		Row r1 = new Row();
+	////		LinkedList<String> r1Row = new LinkedList<>();
+	////		r1Row.add("1");
+	////		r1Row.add("2");
+	////		r1.setColumns(r1Row);
+	////		Row r2 = new Row();
+	////		LinkedList<String> r2Row = new LinkedList<>();
+	////		r2Row.add("1");
+	////		r2Row.add("4");
+	////		r2.setRow(r2Row);
+	////		LinkedList<Row> rows = new LinkedList<>();
+	////		rows.add(r1);
+	////		rows.add(r2);
+	////		t.setRows(rows);
+	////		t.setHeader(header);
+	//		LinkedList<String> cols= new LinkedList<>();
+	//		cols.add("name");
+	//		cols.add("family");
+	//		Table table = new Table("table1", cols, null);
+	//		Row toInsert=new Row();
+	//		HashMap<String, String>row=new HashMap<>();
+	//		row.put("name", "borna");
+	//		row.put("family", "ghtb");
+	//		toInsert.setColumns(row);
+	//		table.setHeader(cols);
+	//		
+	//		table.insert(toInsert);
+	//		
+	//		toInsert=new Row();
+	//		row=new HashMap<>();
+	//		row.put("name", "mohi");
+	//		row.put("family", "kjhgf");
+	//		toInsert.setColumns(row);
+	//		
+	//		table.insert(toInsert);
+	////		System.out.println(table.getRows().get(1));
+	//		
+	////		table.print();
+	//		
+	//		WhereRecursive wr = new WhereRecursive(table);
+	//		try {
+	//			System.out.println(wr.ReadCommand("(name=mohi) OR (family=ghtb)", table));
+	//			
+	//		} catch (Exception e) {
+	//			e.printStackTrace();
+	//			// TODO: handle exception
+	//		}
+	//
+	//	}
 
 	public WhereRecursive(Table t)
 	{
@@ -94,8 +94,6 @@ public class WhereRecursive {
 
 						String beforeOP = com.substring(1, i);
 						String afterOP = com.substring(nexPrPos + 1, len - 1);
-						//						Table before = ReadCommand(beforeOP, table);
-						//						Table after = ReadCommand(afterOP, table);
 						if(operator =="AND"){
 							Table temp = new Table("temp", table.getHeader(), null);
 							if((isActiveTuple(beforeOP) && isActiveTuple(afterOP)) 
@@ -156,8 +154,6 @@ public class WhereRecursive {
 
 						int computeValueLength=computevalue.length();
 						Table temp = new Table("temp2", table.getHeader(), null);
-//						System.out.println(temp);
-						//						System.out.println(computevalue);
 						for (int j = 0; j < computeValueLength; j++) {
 							if (computevalue.charAt(j) == '=') {
 								String colName = computevalue.substring(0, j );
@@ -168,8 +164,6 @@ public class WhereRecursive {
 									String computedVal= "";
 									try
 									{
-//										System.out.println(table.getRows().get(1l));
-//										System.err.println(table.getRows().size());
 										for (Long k : table.getRows().keySet()) {
 											computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
 											computedValInt = Integer.parseInt(computedVal);
@@ -181,9 +175,6 @@ public class WhereRecursive {
 									}
 									catch(Exception e)
 									{
-//										e.printStackTrace();
-//										System.out.println(table.getRows().get(2L).getColumns().get(colName));
-//										System.out.println(colName);
 										for (Long k : table.getRows().keySet()) {
 											if(computedVal.compareTo(table.getRows().get(k).getColumns().get(colName)) == 0)
 											{
@@ -209,7 +200,7 @@ public class WhereRecursive {
 								int computedValInt =0 ;
 								try
 								{
-									for (int k = 0; k < table.getRows().size(); k++) {
+									for (Long k : table.getRows().keySet()) {
 										computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
 										computedValInt = Integer.parseInt(computedVal);
 										if(computedValInt > Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
@@ -220,7 +211,7 @@ public class WhereRecursive {
 								}
 								catch(Exception e)
 								{
-									for (int k = 0; k < table.getRows().size(); k++) {
+									for (Long k : table.getRows().keySet()) {
 										if(computedVal.compareTo(table.getRows().get(k).getColumns().get(colName)) > 0)
 										{
 											temp.insert(k, table);
@@ -233,20 +224,20 @@ public class WhereRecursive {
 								String value = computevalue.substring(j + 1, computeValueLength);
 								int computedValInt = 0;
 								String computedVal="";
-										try
+								try
 								{
-											for (int k = 0; k < table.getRows().size(); k++) {
-												computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
-												computedValInt = Integer.parseInt(computedVal);
-												if(computedValInt < Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
-												{
-													temp.insert(k, table);
-												}
-											}
+									for (Long k : table.getRows().keySet()) {
+										computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
+										computedValInt = Integer.parseInt(computedVal);
+										if(computedValInt < Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
+										{
+											temp.insert(k, table);
+										}
+									}
 								}
 								catch(Exception e)
 								{
-									for (int k = 0; k < table.getRows().size(); k++) {
+									for (Long k : table.getRows().keySet()) {
 										if(computedVal.compareTo(table.getRows().get(k).getColumns().get(colName)) < 0)
 										{
 											temp.insert(k, table);
@@ -259,20 +250,20 @@ public class WhereRecursive {
 								String value = computevalue.substring(j + 2, computeValueLength);
 								int computedValInt = 0;
 								String computedVal="";
-										try
+								try
 								{
-											for (int k = 0; k < table.getRows().size(); k++) {
-												computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
-												computedValInt = Integer.parseInt(computedVal);
-												if(computedValInt >= Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
-												{
-													temp.insert(k, table);
-												}
-											}
+									for (Long k : table.getRows().keySet()) {
+										computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
+										computedValInt = Integer.parseInt(computedVal);
+										if(computedValInt >= Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
+										{
+											temp.insert(k, table);
+										}
+									}
 								}
 								catch(Exception e)
 								{
-									for (int k = 0; k < table.getRows().size(); k++) {
+									for (Long k : table.getRows().keySet()) {
 										if(computedVal.compareTo(table.getRows().get(k).getColumns().get(colName)) >= 0)
 										{
 											temp.insert(k, table);
@@ -285,20 +276,20 @@ public class WhereRecursive {
 								String value = computevalue.substring(j + 2, computeValueLength);
 								String computedVal="";
 								int computedValInt = 0;
-										try
+								try
 								{
-											for (int k = 0; k < table.getRows().size(); k++) {
-												computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
-												computedValInt = Integer.parseInt(computedVal);
-												if(computedValInt <= Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
-												{
-													temp.insert(k, table);
-												}
-											}
+									for (Long k : table.getRows().keySet()) {
+										computedVal = Parser.computeValue(value, table.getRows().get(k), table.getHeader());
+										computedValInt = Integer.parseInt(computedVal);
+										if(computedValInt <= Integer.parseInt(table.getRows().get(k).getColumns().get(colName)))
+										{
+											temp.insert(k, table);
+										}
+									}
 								}
 								catch(Exception e)
 								{
-									for (int k = 0; k < table.getRows().size(); k++) {
+									for (Long k : table.getRows().keySet()) {
 										if(computedVal.compareTo(table.getRows().get(k).getColumns().get(colName)) <= 0)
 										{
 											temp.insert(k, table);
@@ -308,10 +299,8 @@ public class WhereRecursive {
 							}
 						}
 						return temp;
-						// System.out.println(computeValue);
 					}
 
-//					System.out.println(com);
 				}
 			}
 
