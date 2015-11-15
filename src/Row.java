@@ -1,20 +1,30 @@
-import java.util.LinkedList;
+import java.util.HashMap;
 
 public class Row
 {
-	private LinkedList<String> row = new LinkedList<>();
+	private HashMap<String, String>columns = new HashMap<>();
 
-	public LinkedList<String> getRow() {
-		return row;
+
+	public HashMap<String, String> getColumns() {
+		return columns;
 	}
 
-	public void setRow(LinkedList<String> row) {
-		this.row = row;
+	public void setColumns(HashMap<String, String> row) {
+		this.columns = row;
 	}
-	
 	@Override
-	public String toString() {
-		// TODO Auto-generated method stub
-		return row.toString();
+	public String toString(){
+		String toReturn="";
+		int index = 0;
+		for(String s:columns.keySet())
+		{
+//			System.out.println(s);
+			if(index == 0)
+				toReturn=columns.get(s);
+			else
+				toReturn=toReturn+"\t"+columns.get(s);
+			index++;
+		}
+		return toReturn;
 	}
 }

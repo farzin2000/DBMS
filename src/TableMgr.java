@@ -1,22 +1,26 @@
 import java.util.HashMap;
 
-public class TableMgr 
-{	
-	private static TableMgr manager;
-	
+public class TableMgr {
+	static TableMgr instance;
 	private HashMap<String, Table> tables = new HashMap<>();
-	
 	private TableMgr()
 	{
-		
+
+	}
+
+	public static TableMgr getInstance() {
+		if(instance == null)
+		{
+			instance = new TableMgr();
+			return instance;
+		}
+		else
+			return instance;
 	}
 	
-	public static TableMgr getInstance()
+	public void addTable(Table table)
 	{
-		if(manager != null)
-			return manager;
-		else
-			return manager = new TableMgr();
+		getTables().put(table.getName(), table);
 	}
 
 	public HashMap<String, Table> getTables() {
@@ -26,5 +30,6 @@ public class TableMgr
 	public void setTables(HashMap<String, Table> tables) {
 		this.tables = tables;
 	}
-
+	
 }
+
