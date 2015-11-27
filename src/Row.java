@@ -23,7 +23,7 @@ public class Row
 			if(index == 0)
 				toReturn=columns.get(s);
 			else
-				toReturn=toReturn+"\t"+columns.get(s);
+				toReturn=toReturn+","+columns.get(s);
 			index++;
 		}
 		return toReturn;

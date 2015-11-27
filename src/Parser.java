@@ -359,11 +359,9 @@ public class Parser
 	public static String computeValue(String computable, Row row, LinkedList<String> tableHeader)
 	{
 		String out = "";
-		//		if(!computable.contains("\""))
 		for (int i = 0; i < tableHeader.size(); i++) 
 		{
-			//				if(Character.is)
-			//							System.out.println(row);
+			//TODO: cannot have two colName in compute value!!
 			computable = computable.replaceFirst(tableHeader.get(i), row.getColumns().get(tableHeader.get(i)));
 
 		}

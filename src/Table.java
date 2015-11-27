@@ -11,7 +11,7 @@ public class Table
 	private HashMap<Long,Row>rows = new HashMap<>();
 	private TableMode tableMode;
 
-	
+
 	public HashMap<Long, Row> getRows() {
 		return rows;
 	}
@@ -52,7 +52,7 @@ public class Table
 				toBeAdded.add(uniqueRowNum);
 				i.index.put(data.getColumns().get(i.getColumnName()), toBeAdded);
 			}
-			
+
 		}
 		uniqueRowNum++;
 	}
@@ -71,14 +71,14 @@ public class Table
 				toBeAdded.add(forceUnique);
 				i.index.put(data.getColumns().get(i.getColumnName()), toBeAdded);
 			}
-			
+
 		}
 	}
 	public void insert(long uniqueRowNum, Table ref)
 	{
 		rows.put(uniqueRowNum,ref.getRows().get(uniqueRowNum));
 	}
-	
+
 	public ArrayList<String> getIndexedHeaders(){
 		ArrayList<String>returnValue=new ArrayList<>();
 		for(Index i:indexes){
@@ -86,7 +86,7 @@ public class Table
 		}
 		return returnValue;
 	}
-	
+
 	public void delete(Table t){
 		HashMap<Long, Row> toDelete=t.getRows();
 		for(Long key:toDelete.keySet()){
@@ -100,7 +100,7 @@ public class Table
 			this.print();
 			return this;
 		}
-		
+
 		Table table = new Table("selected", columns, TableMode.TEMPORALL);
 		for(Long key:rows.keySet()){
 			Row r=rows.get(key);
@@ -125,17 +125,24 @@ public class Table
 			System.out.println("NO RESULT");
 			return;
 		}
+		int i = 0;
 		for(String header:this.getHeader())
 		{
-			System.out.print(header+"\t");
+			if(i == this.getHeader().size()-1)
+				System.out.print(header);
+			else
+				System.out.print(header+",");
+			i++;
 		}
 		System.out.println();
-		System.out.println("================");
+		i = 0;
+		//		System.out.println("================");
 		for(Long key:this.getRows().keySet()){
-			System.out.print(this.getRows().get(key)+"\n");
+			System.out.println(this.getRows().get(key));
+			
 		}
 	}
-	
+
 	public void update(Table table,String columnName,String valueToCompute){
 		for(Long key:table.getRows().keySet()){
 			Row r=rows.get(key);
@@ -263,7 +270,7 @@ public class Table
 		out = out.replace("\"", "");
 		return out;
 	}
-	
+
 	@Override
 	public String toString() {
 		return this.getRows().toString();
