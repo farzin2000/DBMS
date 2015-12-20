@@ -1,5 +1,6 @@
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,6 +11,9 @@ public class Table
 	private LinkedList<String> header = new LinkedList<>();
 	private HashMap<Long,Row>rows = new HashMap<>();
 	private TableMode tableMode;
+	private String primaryKey;
+	private ArrayList<ForeignKey> foreignKeys = new ArrayList<>();
+	private ArrayList<Table> referencedList = new ArrayList<>();
 
 
 	public HashMap<Long, Row> getRows() {
@@ -28,8 +32,37 @@ public class Table
 		this.tableMode = tableMode;
 	}
 
+	public ArrayList<Table> getReferencedList() {
+		return referencedList;
+	}
+
+	public void setReferencedList(ArrayList<Table> referencedList) {
+		this.referencedList = referencedList;
+	}
+
 	private String name;
 	private long uniqueRowNum=1L;
+
+	/**
+	 * 
+	 * @param tableName name of table that had been given fk to this table(!)(FUCK!)
+	 * @author Farzin_PC & amoo heshmat
+	 */
+
+	public void updateRefListForFK(String tableName)
+	{
+		Table t = TableMgr.getInstance().getTables().get(tableName);
+		t.referencedList.add(this);
+	}
+
+	public Table(String name, Table table, TableMode mode)
+	{
+		this.tableMode = mode;
+		this.name = name;
+		this.header=table.getHeader();
+		this.primaryKey = table.getPrimaryKey();
+		this.foreignKeys = table.getForeignKey();
+	}
 
 	public Table(String name, LinkedList<String> cols, TableMode mode)
 	{
@@ -37,6 +70,8 @@ public class Table
 		this.name = name;
 		this.header=cols;
 	}
+
+
 	public void insert(Row data)
 	{
 		rows.put(uniqueRowNum,data);
@@ -87,11 +122,49 @@ public class Table
 		return returnValue;
 	}
 
-	public void delete(Table t){
-		HashMap<Long, Row> toDelete=t.getRows();
-		for(Long key:toDelete.keySet()){
-			rows.remove(key);
+	public void removeRow(Row r)
+	{
+		long remove = 0;
+		for (Long l : rows.keySet()) {
+			if(rows.get(l).equals(r))
+			{
+				remove = l;
+			}
 		}
+		rows.remove(remove);
+	}
+
+	public void delete(Table t)
+	{
+		
+		boolean isRestricted = true;
+		for(Table refTable : referencedList)
+		{
+			for (ForeignKey fk : refTable.getForeignKey()) 
+			{
+				if(fk.getReferencedTable().getName() == this.getName() && fk.getOnDelete() == Mode.CASCADE)
+				{
+					isRestricted = false;
+					HashMap<Long, Row> del = t.getRows();
+					for (Row rT : del.values()) {
+						String query = "DELETE FROM "+refTable.getName()+" WHERE "+fk.getColumnName()+"="+rT.getColumns().get(t.getPrimaryKey())+";";
+						Parser.parseQuery(query);
+					}
+				}
+			}
+		}
+		if(!isRestricted)
+		{
+			HashMap<Long, Row> toDelete = t.getRows();
+			for(Long key:toDelete.keySet()){
+				rows.remove(key);
+			}
+		}
+		else
+		{
+			System.out.println("FOREIGN KEY CONSTRAINT RESTRICTS");
+		}
+		return;
 	}
 
 	public Table select(LinkedList<String> columns)
@@ -139,142 +212,204 @@ public class Table
 		//		System.out.println("================");
 		for(Long key:this.getRows().keySet()){
 			System.out.println(this.getRows().get(key));
-			
+
 		}
 	}
 
 	public void update(Table table,String columnName,String valueToCompute){
-		for(Long key:table.getRows().keySet()){
-			Row r=rows.get(key);
-			LinkedHashMap<String, String>columns=r.getColumns();
-			columns.replace(columnName,computeValue(valueToCompute));
-			r.setColumns(columns);
-			rows.replace(key,r);
-		}
-	}
 
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public LinkedList<String> getHeader() {
-		return header;
-	}
-
-	public void setHeader(LinkedList<String> header) {
-		this.header = header;
-	}
-
-	public ArrayList<Index> getIndexes() {
-		return indexes;
-	}
-
-	public void setIndexes(ArrayList<Index> indexes) {
-		this.indexes = indexes;
-	}
-	public void createIndex(String indexName,String columnName){
-		Index i=new Index();
-		i.setColumnName(columnName);
-		i.setIndexName(indexName);
-		for(Long tableKey:this.getRows().keySet()){
-			if(i.index.get(columnName)!=null){
-				LinkedList<Long>newIds=i.index.get(columnName);
-				newIds.add(tableKey);
-				i.index.replace(columnName, newIds);
-			}
-			else{
-				LinkedList<Long>newIds=new LinkedList<>();
-				newIds.add(tableKey);
-				i.index.put(columnName,newIds);
-			}
-		}
-		indexes.add(i);
-	}
-	public static String computeValue(String computable)
-	{
-		String out = "";
-		//TODO: minus is not considered!
-		if(Character.isDigit(computable.charAt(0)))
+		if(columnName.equals(primaryKey))
 		{
-			if(!computable.contains("+")&&!computable.contains("-")&&!computable.contains("*")&&!computable.contains("/")) {
-				List<String>oneNum=new ArrayList<>();
-				int count=0;
-				while(count!=computable.length()) {
-					oneNum.add(computable.charAt(count)+"");
-					count++;
-				}
-				StringBuilder listString = new StringBuilder();
-				for (String s : oneNum)
-					listString.append(s+"");
-				return Integer.parseInt(listString.toString())+"";
-			}
-			int count=0;
-			Integer num=null;
-			char lastOperand = 0;
-			List<String>oneNum=new ArrayList<>();
-			while(count!=computable.length()+1) {
-				if(count!=computable.length()&&Character.isDigit(computable.charAt(count))) {
-					oneNum.add(computable.charAt(count)+"");
-					count++;
-					continue;
-				}
-				else if(num==null) {
-					StringBuilder listString = new StringBuilder();
-					for (String s : oneNum)
-						listString.append(s+"");
-					num=Integer.parseInt(listString.toString());
-					lastOperand=computable.charAt(count);
-					count++;
-					oneNum=new ArrayList<>();
-				}
-				else {
-					StringBuilder listString = new StringBuilder();
-					for (String s : oneNum)
-						listString.append(s+"");
-					switch (lastOperand) {
-					case '+':
-						num+=Integer.parseInt(listString.toString());
-						break;
-					case '-':
-						num-=Integer.parseInt(listString.toString());
-						break;
-					case '*':
-						num*=Integer.parseInt(listString.toString());
-						break;
-					case '/':
-						num/=Integer.parseInt(listString.toString());
-						break;
+			boolean isRestricted = true;
+			for(Table refTable : referencedList)
+			{
+				for (ForeignKey fk : refTable.getForeignKey()) 
+				{
+					if(fk.getReferencedTable().getName() == this.getName() && fk.getOnUpdate() == Mode.CASCADE)
+					{
+						isRestricted = false;
+						HashMap<Long, Row> del = table.getRows();
+						for (Row rT : del.values()) {
+							String query = "UPDATE "+refTable.getName()+" SET "+fk.getColumnName()+"="+valueToCompute+" WHERE "+fk.getColumnName()+"="+rT.getColumns().get(table.getPrimaryKey())+";";
+							Parser.parseQuery(query);
+						}
 					}
-					if(count==computable.length())
-						break;
-					lastOperand=computable.charAt(count);
-					count++;
-					oneNum=new ArrayList<>();
 				}
 			}
-			out=String.valueOf(num);
+			if(!isRestricted)
+			{
+				for(Long key:table.getRows().keySet()){
+					Row r=rows.get(key);
+					LinkedHashMap<String, String>columns=r.getColumns();
+					columns.replace(columnName,Parser.computeValue(valueToCompute, r, table.getHeader()));
+					r.setColumns(columns);
+					rows.replace(key,r);
+				}
+			}
+			else
+			{
+				System.out.println("FOREIGN KEY CONSTRAINT RESTRICTS");
+				
+			}
 		}
 		else
 		{
-			String[] splited = computable.split("\\+");
-			for (int i = 0; i < splited.length; i++) 
-			{
-				out += splited[i];
+			for(Long key:table.getRows().keySet()){
+				Row r=rows.get(key);
+				LinkedHashMap<String, String>columns=r.getColumns();
+				columns.replace(columnName,Parser.computeValue(valueToCompute, r, table.getHeader()));
+				r.setColumns(columns);
+				rows.replace(key,r);
 			}
 		}
-		out = out.replace("\"", "");
-		return out;
-	}
+	
+	return;
+}
 
-	@Override
-	public String toString() {
-		return this.getRows().toString();
+
+public String getName() {
+	return name;
+}
+
+public void setName(String name) {
+	this.name = name;
+}
+
+public String getPrimaryKey() {
+	return primaryKey;
+}
+
+public void setPrimaryKey(String primaryKey) {
+	this.primaryKey = primaryKey;
+}
+
+public ArrayList<ForeignKey> getForeignKey() {
+	return foreignKeys;
+}
+
+public void setForeignKey(ArrayList<ForeignKey> foreignKey) {
+	this.foreignKeys = foreignKey;
+}
+
+public LinkedList<String> getHeader() {
+	return header;
+}
+
+public void setHeader(LinkedList<String> header) {
+	this.header = header;
+}
+
+public ArrayList<Index> getIndexes() {
+	return indexes;
+}
+
+public void setIndexes(ArrayList<Index> indexes) {
+	this.indexes = indexes;
+}
+
+public void addForeignKey(ForeignKey fk)
+{
+	foreignKeys.add(fk);
+}
+public void createIndex(String indexName,String columnName){
+	Index i=new Index();
+	i.setColumnName(columnName);
+	i.setIndexName(indexName);
+	for(Long tableKey:this.getRows().keySet()){
+		if(i.index.get(columnName)!=null){
+			LinkedList<Long>newIds=i.index.get(columnName);
+			newIds.add(tableKey);
+			i.index.replace(columnName, newIds);
+		}
+		else{
+			LinkedList<Long>newIds=new LinkedList<>();
+			newIds.add(tableKey);
+			i.index.put(columnName,newIds);
+		}
 	}
+	indexes.add(i);
+	System.out.println("INDEX CREATED");
+}
+public static String computeValue(String computable)
+{
+	String out = "";
+	//TODO: minus is not considered!
+	if(Character.isDigit(computable.charAt(0)))
+	{
+		if(!computable.contains("+")&&!computable.contains("-")&&!computable.contains("*")&&!computable.contains("/")) {
+			List<String>oneNum=new ArrayList<>();
+			int count=0;
+			while(count!=computable.length()) {
+				oneNum.add(computable.charAt(count)+"");
+				count++;
+			}
+			StringBuilder listString = new StringBuilder();
+			for (String s : oneNum)
+				listString.append(s+"");
+			return Integer.parseInt(listString.toString())+"";
+		}
+		int count=0;
+		Integer num=null;
+		char lastOperand = 0;
+		List<String>oneNum=new ArrayList<>();
+		while(count!=computable.length()+1) {
+			if(count!=computable.length()&&Character.isDigit(computable.charAt(count))) {
+				oneNum.add(computable.charAt(count)+"");
+				count++;
+				continue;
+			}
+			else if(num==null) {
+				StringBuilder listString = new StringBuilder();
+				for (String s : oneNum)
+					listString.append(s+"");
+				num=Integer.parseInt(listString.toString());
+				lastOperand=computable.charAt(count);
+				count++;
+				oneNum=new ArrayList<>();
+			}
+			else {
+				StringBuilder listString = new StringBuilder();
+				for (String s : oneNum)
+					listString.append(s+"");
+				switch (lastOperand) {
+				case '+':
+					num+=Integer.parseInt(listString.toString());
+					break;
+				case '-':
+					num-=Integer.parseInt(listString.toString());
+					break;
+				case '*':
+					num*=Integer.parseInt(listString.toString());
+					break;
+				case '/':
+					num/=Integer.parseInt(listString.toString());
+					break;
+				}
+				if(count==computable.length())
+					break;
+				lastOperand=computable.charAt(count);
+				count++;
+				oneNum=new ArrayList<>();
+			}
+		}
+		out=String.valueOf(num);
+	}
+	else
+	{
+		String[] splited = computable.split("\\+");
+		for (int i = 0; i < splited.length; i++) 
+		{
+			out += splited[i];
+		}
+	}
+	out = out.replace("\"", "");
+	return out;
+}
+
+@Override
+public String toString() {
+	return this.getName();
+}
 }
 
 enum TableMode

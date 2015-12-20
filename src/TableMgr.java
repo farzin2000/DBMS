@@ -18,6 +18,14 @@ public class TableMgr {
 			return instance;
 	}
 	
+	public Table getTableByName(String name){
+		return tables.get(name);
+	}
+	
+	public void deleteTableByName(String tableName){
+		tables.remove(tableName);
+	}
+	
 	public void addTable(Table table)
 	{
 		getTables().put(table.getName(), table);

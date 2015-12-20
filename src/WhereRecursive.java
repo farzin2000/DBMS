@@ -95,7 +95,7 @@ public class WhereRecursive {
 						String beforeOP = com.substring(1, i);
 						String afterOP = com.substring(nexPrPos + 1, len - 1);
 						if(operator =="AND"){
-							Table temp = new Table("temp", table.getHeader(), null);
+							Table temp = new Table("temp", table, null);
 							if((isActiveTuple(beforeOP) && isActiveTuple(afterOP)) 
 									|| (!isActiveTuple(beforeOP) && !isActiveTuple(afterOP)))
 							{
@@ -121,7 +121,7 @@ public class WhereRecursive {
 							return temp;
 						}
 						if(operator == "OR"){
-							Table temp = new Table("temp", table.getHeader(), null);
+							Table temp = new Table("temp", table, null);
 							Table before = ReadCommand(beforeOP, table);
 							Table after = ReadCommand(afterOP, table);
 							for (long l : before.getRows().keySet()) {
@@ -139,7 +139,7 @@ public class WhereRecursive {
 					if (com.equals("TRUE")) {
 						return table;
 					} else if (com.equals("FALSE")) {
-						return new Table("temp3", table.getHeader(),null);
+						return new Table("temp3", table,null);
 					} else {
 
 						boolean not = false;
@@ -153,7 +153,7 @@ public class WhereRecursive {
 						}
 
 						int computeValueLength=computevalue.length();
-						Table temp = new Table("temp2", table.getHeader(), null);
+						Table temp = new Table("temp2", table, null);
 						for (int j = 0; j < computeValueLength; j++) {
 							if (computevalue.charAt(j) == '=') {
 								String colName = computevalue.substring(0, j );

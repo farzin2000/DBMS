@@ -1,6 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -25,26 +23,72 @@ public class Parser
 	public static String parseQuery(String query)
 	{
 		String output = "";
+		Table table;
 		query = query.replace(";", "");	
 		String[] tokens = query.split(" ");
+		String insertInsideParanthese;
+		String createTableInsideParanthese;
+		int startInd = 0;
+		int endInd = 0;
+		for (int i = 0; i < query.length(); i++) {
+			if(query.charAt(i) == '(')
+				startInd = i;
+			if(query.charAt(i) == ')')
+				endInd = i;
+		}
+
 		
 		if(tokens[0].equals("CREATE"))
 		{
 			if(tokens[1].equals("TABLE"))
 			{
+				createTableInsideParanthese = query.substring(startInd, endInd+1);
 				LinkedList<String> headers = new LinkedList<>();
 				String tableName = tokens[2].split("\\(")[0];
-				String[] cols = query.split("\\(");
-//				System.out.println(cols[1]);
-				cols[1] = cols[1].replace(")", "");
-				String[] colNames = cols[1].split(",");
+				createTableInsideParanthese = createTableInsideParanthese.replace("(", "");
+				createTableInsideParanthese = createTableInsideParanthese.replace(")", "");
+				String[] colNames = createTableInsideParanthese.split(",");
 				for (int i = 0; i < colNames.length; i++) {
 					headers.add(colNames[i].split(" ")[0]);
 				}
-				Table table = new Table(tableName, headers, null);
+				table = new Table(tableName, headers, null);
+
+				if(endInd != query.length() - 1)
+				{
+					String[] tokens2 = query.substring(endInd+2).split(" ");
+					String pkColumn = null;
+					ArrayList<ForeignKey> fks  = new ArrayList<>();
+					for (int i = 0; i < tokens2.length; i++) 
+					{
+						if(tokens2[i].equals("PRIMARY"))
+							pkColumn = tokens2[i+2];
+						else if(tokens2[i].equals("FOREIGN"))
+						{
+							String name = tokens2[i+2];
+							String ref = tokens2[i+4];
+							table.updateRefListForFK(ref);
+							Mode del = null;
+							Mode update = null;
+							if(tokens2[i+7].equals("CASCADE"))
+								del = Mode.CASCADE;
+							if(tokens2[i+7].equals("RESTRICT"))
+								del = Mode.RESTRICT;
+							if(tokens2[i+10].equals("CASCADE"))
+								update = Mode.CASCADE;
+							if(tokens2[i+10].equals("RESTRICT"))
+								update = Mode.RESTRICT;
+							ForeignKey fk = new ForeignKey(name, ref, del, update);
+							table.createIndex(fk.getColumnName()+"_index", fk.getColumnName());
+							fks.add(fk);
+						}
+					}
+					table.setForeignKey(fks);
+					table.setPrimaryKey(pkColumn);
+					table.createIndex(pkColumn+"_index", pkColumn);
+				}
 				TableMgr.getInstance().addTable(table);
 				output = "TABLE CREATED";
-//				return output;
+				//				return output;
 			}
 			else if(tokens[1].equals("INDEX"))
 			{
@@ -52,12 +96,13 @@ public class Parser
 				String tableName = tokens[4].split("\\(")[0];
 				String col = tokens[4].split("\\(")[1];
 				TableMgr.getInstance().getTables().get(tableName).createIndex(indexName, col);
-				output = "INDEX CREATED";
+//				output = "INDEX CREATED";
 			}
 		}
 		else if(tokens[0].equals("INSERT"))
 		{
-			output = parseINSERT(tokens[4], tokens[2]);
+			insertInsideParanthese = query.substring(startInd, endInd+1);
+			output = parseINSERT(insertInsideParanthese, tokens[2]);
 		}
 		else if(tokens[0].equals("UPDATE"))
 		{
@@ -83,7 +128,7 @@ public class Parser
 		{
 			cols.add(string);
 		}
-//		System.out.println(cols);
+		//		System.out.println(cols);
 		String tableName = tokens[3];
 		String whereClause = "";
 		for (int i = 5; i < tokens.length; i++) 
@@ -117,34 +162,42 @@ public class Parser
 		WhereRecursive wr = new WhereRecursive(selectedTable);
 		selectedTable.update(wr.ReadCommand(whereClause, selectedTable), colName, computeValue);
 		return "";
-		
+
 	}
 	private static String parseDELETE(String query)
 	{
 		String[] tokens = query.split(" ");
 		String tableName = tokens[2];
-		String deletable = tokens[4];
+//		String deletable = tokens[4];
+		String whereClause = "";
+		for (int i = 4; i < tokens.length; i++) 
+		{
+			if(i == tokens.length - 1)
+				whereClause = whereClause + tokens[i];
+			else
+				whereClause = whereClause + tokens[i] + " ";
+		}
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		WhereRecursive wr = new WhereRecursive(selectedTable);
-		selectedTable.delete(wr.ReadCommand(deletable, selectedTable));
+		selectedTable.delete(wr.ReadCommand(whereClause, selectedTable));
 		return "";
 	}
-	
+
 	private static String parseINSERT(String query, String tableName)
 	{
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		Row r = new Row();
 		LinkedHashMap<String, String> cols = new LinkedHashMap<>();
 		int index = 0;
-		
+
 		for (String colName : selectedTable.getHeader()) 
 		{
 			query = query.replace("(", "").replace(")", "");
-//			System.out.println(query);
+			//			System.out.println(query);
 			cols.put(colName, query.split(",")[index].replace("\"", ""));
 			index++;
 		}
-		
+
 		r.setColumns(cols);
 		selectedTable.insert(r);
 		return "RECORD INSERTED";

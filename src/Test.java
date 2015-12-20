@@ -1,15 +1,26 @@
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Test {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		Scanner input = new Scanner(System.in);
-		while (input.hasNext()) 
+//		BufferedReader reader = new BufferedReader(new FileReader(new File("../PPhase1-Test/99/in.txt")));
+//		String line;
+//		while ((line = reader.readLine()) != null) 
+//		{
+//			System.out.println(Parser.parseQuery(line));
+//		}
+		while(input.hasNext())
 		{
 			System.out.println(Parser.parseQuery(input.nextLine()));
 		}
+		
+		
+		
 ////		System.out.println(Parser.parseQuery("CREATE TABLE STT(STID INT,STNAME VARCHAR,STDEG VARCHAR,STMJR VARCHAR,STDID INT)"));
 //		LinkedList<String> cols= new LinkedList<>();
 //		cols.add("name");
