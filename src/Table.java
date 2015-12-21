@@ -167,19 +167,19 @@ public class Table
 		return;
 	}
 
-	public Table select(LinkedList<String> columns)
+	public Table select(LinkedList<String> columns,Table selectedTable)
 	{
 		if(columns==null||columns.isEmpty()){
-			this.print();
-			return this;
+			selectedTable.print();
+			return selectedTable;
 		}
 
 		Table table = new Table("selected", columns, TableMode.TEMPORALL);
-		for(Long key:rows.keySet()){
-			Row r=rows.get(key);
+		for(Long key:selectedTable.rows.keySet()){
+			Row r=selectedTable.rows.get(key);
 			Row newRow=new Row();
 			LinkedHashMap<String, String>rowValues=new LinkedHashMap<>();
-			for(String s:getHeader()){
+			for(String s:selectedTable.getHeader()){
 				if(columns.contains(s)){
 					rowValues.put(s, r.getColumns().get(s));
 				}

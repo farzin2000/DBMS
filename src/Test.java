@@ -1,6 +1,4 @@
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
 import java.util.Scanner;
 
@@ -8,15 +6,21 @@ public class Test {
 	public static void main(String[] args) throws IOException {
 		
 		Scanner input = new Scanner(System.in);
+		Scanner input2=new Scanner(new File("/home/mohammad/Desktop/99/in.txt"));
 //		BufferedReader reader = new BufferedReader(new FileReader(new File("../PPhase1-Test/99/in.txt")));
 //		String line;
 //		while ((line = reader.readLine()) != null) 
 //		{
 //			System.out.println(Parser.parseQuery(line));
 //		}
-		while(input.hasNext())
+		while(input2.hasNext())
 		{
-			System.out.println(Parser.parseQuery(input.nextLine()));
+			String rawinput=input2.nextLine();
+//			if(rawinput.toUpperCase().contains("INDEX")){
+//				System.err.println("Press enter...");
+//				input.nextLine();
+//			}
+			System.out.println(Parser.parseQuery(rawinput));
 		}
 		
 		

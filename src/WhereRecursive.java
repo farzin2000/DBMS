@@ -391,9 +391,8 @@ public class WhereRecursive {
 								//								System.out.println(colName);
 								//								System.out.println(value);
 							}
-							else
-								return false;
 						}
+						return false;
 					}
 
 				}

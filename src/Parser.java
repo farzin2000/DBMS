@@ -94,7 +94,7 @@ public class Parser
 			{
 				String indexName = tokens[2]; 
 				String tableName = tokens[4].split("\\(")[0];
-				String col = tokens[4].split("\\(")[1];
+				String col = tokens[5].substring(1, tokens[5].length()-1);//tokens[4].split("\\(")[1];
 				TableMgr.getInstance().getTables().get(tableName).createIndex(indexName, col);
 //				output = "INDEX CREATED";
 			}
@@ -140,7 +140,7 @@ public class Parser
 		}
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		WhereRecursive wr = new WhereRecursive(selectedTable);
-		wr.ReadCommand(whereClause, selectedTable).select(cols);
+		wr.ReadCommand(whereClause, selectedTable).select(cols,selectedTable);
 		return "";
 	}
 	private static String parseUPDATE(String query)
