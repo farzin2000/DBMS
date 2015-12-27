@@ -4,67 +4,14 @@ import java.util.LinkedList;
 public class WhereRecursive {
 
 	static Table table;
-	//	public static void main(String[] args) {
-	//		//		System.out.println(ReadCommand("(TRUE) OR ((FALSE) AND (FALSE)) "));
-	////		LinkedList<String> header = new LinkedList<>();
-	////		header.add("A");
-	////		header.add("B");
-	////		Table t = new Table("test", header, null);
-	////		Row r1 = new Row();
-	////		LinkedList<String> r1Row = new LinkedList<>();
-	////		r1Row.add("1");
-	////		r1Row.add("2");
-	////		r1.setColumns(r1Row);
-	////		Row r2 = new Row();
-	////		LinkedList<String> r2Row = new LinkedList<>();
-	////		r2Row.add("1");
-	////		r2Row.add("4");
-	////		r2.setRow(r2Row);
-	////		LinkedList<Row> rows = new LinkedList<>();
-	////		rows.add(r1);
-	////		rows.add(r2);
-	////		t.setRows(rows);
-	////		t.setHeader(header);
-	//		LinkedList<String> cols= new LinkedList<>();
-	//		cols.add("name");
-	//		cols.add("family");
-	//		Table table = new Table("table1", cols, null);
-	//		Row toInsert=new Row();
-	//		HashMap<String, String>row=new HashMap<>();
-	//		row.put("name", "borna");
-	//		row.put("family", "ghtb");
-	//		toInsert.setColumns(row);
-	//		table.setHeader(cols);
-	//		
-	//		table.insert(toInsert);
-	//		
-	//		toInsert=new Row();
-	//		row=new HashMap<>();
-	//		row.put("name", "mohi");
-	//		row.put("family", "kjhgf");
-	//		toInsert.setColumns(row);
-	//		
-	//		table.insert(toInsert);
-	////		System.out.println(table.getRows().get(1));
-	//		
-	////		table.print();
-	//		
-	//		WhereRecursive wr = new WhereRecursive(table);
-	//		try {
-	//			System.out.println(wr.ReadCommand("(name=mohi) OR (family=ghtb)", table));
-	//			
-	//		} catch (Exception e) {
-	//			e.printStackTrace();
-	//			// TODO: handle exception
-	//		}
-	//
-	//	}
 
 	public WhereRecursive(Table t)
 	{
 		this.table = t;
 	}
 	public Table ReadCommand(String com, Table table) throws NullPointerException {
+		if(com.equals(""))
+			return table;
 		int len = com.length();
 
 		int openPr = 0;
@@ -187,10 +134,11 @@ public class WhereRecursive {
 								{
 									int index = 0;
 									for (int k = 0; k < table.getIndexes().size(); k++) {
-										if(table.getIndexes().get(k).getColumnName() == colName)
+										if(table.getIndexes().get(k).getColumnName().equals(colName))
 											index = k;
 									}
-									temp.insert(index, table);
+									LinkedList<Long> indexedMap = table.getIndexes().get(index).index.get(value);
+									temp.insert(indexedMap, table);
 								}
 							}
 							else if(computevalue.charAt(j) == '<'  && computevalue.charAt(j+1) != '='){
@@ -381,15 +329,11 @@ public class WhereRecursive {
 						}
 
 						int computeValueLength=computevalue.length();
-						//						System.out.println(computevalue);
 						for (int j = 0; j < computeValueLength; j++) {
 							if (computevalue.charAt(j) == '=') {
 								String colName = computevalue.substring(0, j );
 								if(table.getIndexedHeaders().contains(colName))
 									return true;
-								//								String value = computevalue.substring(j + 1, computeValueLength);
-								//								System.out.println(colName);
-								//								System.out.println(value);
 							}
 						}
 						return false;

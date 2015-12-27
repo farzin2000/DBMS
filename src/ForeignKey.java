@@ -1,16 +1,16 @@
 
 public class ForeignKey {
 	
-	private Table referencedTable;
+	private String referencedTable;
 	private String columnName;
 	private Mode onDelete;
 	private Mode onUpdate;
 	
-	public Table getReferencedTable() {
+	public String getReferencedTable() {
 		return referencedTable;
 	}
 	
-	public void setReferencedTable(Table referencedTable) {
+	public void setReferencedTable(String referencedTable) {
 		this.referencedTable = referencedTable;
 	}
 	
@@ -41,7 +41,7 @@ public class ForeignKey {
 	public ForeignKey(String name, String ref, Mode del, Mode update)
 	{
 		this.columnName = name;
-		this.referencedTable = TableMgr.getInstance().getTables().get(ref);
+		this.referencedTable = ref;
 		this.onDelete = del;
 		this.onUpdate = update;
 	}

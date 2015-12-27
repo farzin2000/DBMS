@@ -1,8 +1,11 @@
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 
-public class Row
+public class Row implements Cloneable
 {
+	@Override
+	protected Row clone() throws CloneNotSupportedException {
+		return (Row)super.clone();
+	}
 	private LinkedHashMap<String, String>columns = new LinkedHashMap<>();
 
 
@@ -19,7 +22,6 @@ public class Row
 		int index = 0;
 		for(String s:columns.keySet())
 		{
-//			System.out.println(s);
 			if(index == 0)
 				toReturn=columns.get(s);
 			else

@@ -3,46 +3,26 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 
-public class Parser
-{
-	//	static Stack<String> parseTree;
-	//	static LinkedList<String> operand = new LinkedList<>();
-	//	static
-	//	{
-	//		operand.add("(");
-	//		operand.add("&");
-	//		operand.add("|");
-	//		operand.add("<=");
-	//		operand.add(">=");
-	//		operand.add("=");
-	//		operand.add(">");
-	//		operand.add("<");
-	//		operand.add("@");	// True value
-	//		operand.add("#");	// False value
-	//	}
-	public static String parseQuery(String query)
-	{
+public class Parser {
+	public static String parseQuery(String query) {
 		String output = "";
 		Table table;
-		query = query.replace(";", "");	
+		query = query.replace(";", "");
 		String[] tokens = query.split(" ");
 		String insertInsideParanthese;
 		String createTableInsideParanthese;
 		int startInd = 0;
 		int endInd = 0;
 		for (int i = 0; i < query.length(); i++) {
-			if(query.charAt(i) == '(')
+			if (query.charAt(i) == '(')
 				startInd = i;
-			if(query.charAt(i) == ')')
+			if (query.charAt(i) == ')')
 				endInd = i;
 		}
 
-		
-		if(tokens[0].equals("CREATE"))
-		{
-			if(tokens[1].equals("TABLE"))
-			{
-				createTableInsideParanthese = query.substring(startInd, endInd+1);
+		if (tokens[0].equals("CREATE")) {
+			if (tokens[1].equals("TABLE")) {
+				createTableInsideParanthese = query.substring(startInd, endInd + 1);
 				LinkedList<String> headers = new LinkedList<>();
 				String tableName = tokens[2].split("\\(")[0];
 				createTableInsideParanthese = createTableInsideParanthese.replace("(", "");
@@ -53,437 +33,213 @@ public class Parser
 				}
 				table = new Table(tableName, headers, null);
 
-				if(endInd != query.length() - 1)
-				{
-					String[] tokens2 = query.substring(endInd+2).split(" ");
+				if (endInd != query.length() - 1) {
+					String[] tokens2 = query.substring(endInd + 2).split(" ");
 					String pkColumn = null;
-					ArrayList<ForeignKey> fks  = new ArrayList<>();
-					for (int i = 0; i < tokens2.length; i++) 
+					ArrayList<ForeignKey> fks = new ArrayList<>();
+					for (int i = 0; i < tokens2.length; i++)
+
 					{
-						if(tokens2[i].equals("PRIMARY"))
-							pkColumn = tokens2[i+2];
-						else if(tokens2[i].equals("FOREIGN"))
-						{
-							String name = tokens2[i+2];
-							String ref = tokens2[i+4];
+						if (tokens2[i].equals("PRIMARY"))
+							pkColumn = tokens2[i + 2];
+						else if (tokens2[i].equals("FOREIGN")) {
+							String name = tokens2[i + 2];
+							String ref = tokens2[i + 4];
 							table.updateRefListForFK(ref);
 							Mode del = null;
 							Mode update = null;
-							if(tokens2[i+7].equals("CASCADE"))
+							if (tokens2[i + 7].equals("CASCADE"))
 								del = Mode.CASCADE;
-							if(tokens2[i+7].equals("RESTRICT"))
+							if (tokens2[i + 7].equals("RESTRICT"))
 								del = Mode.RESTRICT;
-							if(tokens2[i+10].equals("CASCADE"))
+							if (tokens2[i + 10].equals("CASCADE"))
 								update = Mode.CASCADE;
-							if(tokens2[i+10].equals("RESTRICT"))
+							if (tokens2[i + 10].equals("RESTRICT"))
 								update = Mode.RESTRICT;
 							ForeignKey fk = new ForeignKey(name, ref, del, update);
-							table.createIndex(fk.getColumnName()+"_index", fk.getColumnName());
+							table.createIndex(fk.getColumnName() + "_index", fk.getColumnName());
 							fks.add(fk);
 						}
 					}
 					table.setForeignKey(fks);
-					table.setPrimaryKey(pkColumn);
-					table.createIndex(pkColumn+"_index", pkColumn);
+					if (pkColumn != null) {
+						table.setPrimaryKey(pkColumn);
+						table.createIndex(pkColumn + "_index", pkColumn);
+					}
 				}
 				TableMgr.getInstance().addTable(table);
 				output = "TABLE CREATED";
-				//				return output;
-			}
-			else if(tokens[1].equals("INDEX"))
-			{
-				String indexName = tokens[2]; 
+				// return output;
+			} else if (tokens[1].equals("INDEX")) {
+				String indexName = tokens[2];
 				String tableName = tokens[4].split("\\(")[0];
-				String col = tokens[5].substring(1, tokens[5].length()-1);//tokens[4].split("\\(")[1];
-				TableMgr.getInstance().getTables().get(tableName).createIndex(indexName, col);
-//				output = "INDEX CREATED";
+				String col = tokens[5].substring(1, tokens[5].length() - 1);// tokens[4].split("\\(")[1];
+				output = TableMgr.getInstance().getTables().get(tableName).createIndex(indexName, col);
 			}
-		}
-		else if(tokens[0].equals("INSERT"))
-		{
-			insertInsideParanthese = query.substring(startInd, endInd+1);
+		} else if (tokens[0].equals("INSERT")) {
+			insertInsideParanthese = query.substring(startInd, endInd + 1);
 			output = parseINSERT(insertInsideParanthese, tokens[2]);
-		}
-		else if(tokens[0].equals("UPDATE"))
-		{
+		} else if (tokens[0].equals("UPDATE")) {
 			output = parseUPDATE(query);
-		}
-		else if(tokens[0].equals("DELETE"))
-		{
+		} else if (tokens[0].equals("DELETE")) {
 			output = parseDELETE(query);
-		}
-		else if(tokens[0].equals("SELECT"))
-		{
+		} else if (tokens[0].equals("SELECT")) {
 			output = parseSELECT(query);
 		}
 
 		return output;
 	}
 
-	private static String parseSELECT(String query)
-	{
+	private static String parseSELECT(String query) {
 		String[] tokens = query.split(" ");
 		LinkedList<String> cols = new LinkedList<>();
-		for (String string : tokens[1].split(",")) 
-		{
+		for (String string : tokens[1].split(",")) {
 			cols.add(string);
 		}
-		//		System.out.println(cols);
-		String tableName = tokens[3];
-		String whereClause = "";
-		for (int i = 5; i < tokens.length; i++) 
-		{
-			if(i == tokens.length - 1)
-				whereClause = whereClause + tokens[i];
-			else
-				whereClause = whereClause + tokens[i] + " ";
+		if (query.toUpperCase().contains("JOIN")) {
+			return Join.joinQuery(query,cols).toString();
+		} else if (!tokens[3].contains(",")) {
+			String tableName = tokens[3];
+			String whereClause = "";
+			for (int i = 5; i < tokens.length; i++) {
+				if (i == tokens.length - 1)
+					whereClause = whereClause + tokens[i];
+				else
+					whereClause = whereClause + tokens[i] + " ";
+			}
+			Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
+			WhereRecursive wr = new WhereRecursive(selectedTable);
+			return selectedTable.select(cols, wr.ReadCommand(whereClause, selectedTable)).toString();
 		}
-		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
-		WhereRecursive wr = new WhereRecursive(selectedTable);
-		wr.ReadCommand(whereClause, selectedTable).select(cols,selectedTable);
-		return "";
+		else {
+			String[]tableNames=new String[2];
+			tableNames[0]=tokens[3].split(",")[0];
+			tableNames[1]=tokens[3].split(",")[1];
+			Table selectedTable=Cartesian.getAnswerByCartesian(tableNames[0],tableNames[1],query);
+			WhereRecursive wr= new WhereRecursive(selectedTable);
+			return wr.ReadCommand(query.substring(query.toUpperCase().indexOf("WHERE")+6).trim(), selectedTable).select(cols,selectedTable).toString();
+		}
 	}
-	private static String parseUPDATE(String query)
-	{
+
+	private static String parseUPDATE(String query) {
 		String[] tokens = query.split(" ");
 		String tableName = tokens[1];
 		String updatable = tokens[3];
 		String colName = updatable.split("=")[0];
 		String computeValue = updatable.split("=")[1];
 		String whereClause = "";
-		for (int i = 5; i < tokens.length; i++) 
-		{
-			if(i == tokens.length - 1)
+		for (int i = 5; i < tokens.length; i++) {
+			if (i == tokens.length - 1)
 				whereClause = whereClause + tokens[i];
 			else
 				whereClause = whereClause + tokens[i] + " ";
 		}
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		WhereRecursive wr = new WhereRecursive(selectedTable);
-		selectedTable.update(wr.ReadCommand(whereClause, selectedTable), colName, computeValue);
-		return "";
+		return selectedTable.update(wr.ReadCommand(whereClause, selectedTable), colName, computeValue, whereClause);
 
 	}
-	private static String parseDELETE(String query)
-	{
+
+	private static String parseDELETE(String query) {
 		String[] tokens = query.split(" ");
 		String tableName = tokens[2];
-//		String deletable = tokens[4];
+		// String deletable = tokens[4];
 		String whereClause = "";
-		for (int i = 4; i < tokens.length; i++) 
-		{
-			if(i == tokens.length - 1)
+		for (int i = 4; i < tokens.length; i++) {
+			if (i == tokens.length - 1)
 				whereClause = whereClause + tokens[i];
 			else
 				whereClause = whereClause + tokens[i] + " ";
 		}
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		WhereRecursive wr = new WhereRecursive(selectedTable);
-		selectedTable.delete(wr.ReadCommand(whereClause, selectedTable));
-		return "";
+		return selectedTable.delete(wr.ReadCommand(whereClause, selectedTable));
 	}
 
-	private static String parseINSERT(String query, String tableName)
-	{
+	private static String parseINSERT(String query, String tableName) {
 		Table selectedTable = TableMgr.getInstance().getTables().get(tableName);
 		Row r = new Row();
 		LinkedHashMap<String, String> cols = new LinkedHashMap<>();
 		int index = 0;
 
-		for (String colName : selectedTable.getHeader()) 
-		{
+		for (String colName : selectedTable.getHeader()) {
 			query = query.replace("(", "").replace(")", "");
-			//			System.out.println(query);
 			cols.put(colName, query.split(",")[index].replace("\"", ""));
 			index++;
 		}
 
 		r.setColumns(cols);
-		selectedTable.insert(r);
-		return "RECORD INSERTED";
+		return selectedTable.insert(r);
 	}
 
-	//	public static ArrayList<Boolean> parseWHEREClause(String subQuery, Table table)
-	//	{
-	//		parseTree = new Stack<>();
-	//		subQuery = subQuery.replace(" OR ", "|");
-	//		subQuery = subQuery.replace(" AND ", "&");
-	//		subQuery = subQuery.replace("NOT ", "!");
-	//		//		System.out.println(subQuery.length());
-	//		ArrayList<Boolean> selectedRows = new ArrayList<>();
-	//
-	//		for (int i = 0; i < table.getRows().size(); i++) 
-	//		{
-	//			Row row = table.getRows().get(i);
-	//			boolean done = false;
-	//			int index = 0;
-	//			while(!done)
-	//			{
-	//				//				System.out.println(row);
-	//				System.out.println(parseTree);
-	//				char character = subQuery.charAt(index);
-	//				if(operand.contains(String.valueOf(character)))
-	//				{
-	//					parseTree.push(String.valueOf(character));
-	//
-	//					index++;
-	//				}
-	//				else if(character == ')')
-	//				{
-	//					if(parseTree.size() > 2)
-	//					{
-	//						String firstPop = parseTree.pop();
-	//						String operator = parseTree.pop();
-	//						String secondPop = parseTree.pop();
-	//						parseTree.pop();
-	//						switch (operator) {
-	//						case "&":
-	//							if(firstPop == "@" && secondPop == "@")
-	//								parseTree.push("@");
-	//							else
-	//								parseTree.push("#");
-	//
-	//						case "|":
-	//							if(firstPop == "#" && secondPop == "#")
-	//								parseTree.push("#");
-	//							else
-	//								parseTree.push("@");
-	//							break;
-	//
-	//						default:
-	//							break;
-	//						}
-	//						index++;
-	//					}
-	//				}
-	//				else
-	//				{
-	//					int tempIndex = 0;
-	//					char [] varOrValue = new char[128];
-	//
-	//					while((!operand.contains(String.valueOf(subQuery.charAt(index))) && subQuery.charAt(index) != ')') )
-	//					{
-	//						varOrValue[tempIndex] = subQuery.charAt(index);
-	//						tempIndex++;
-	//						index++;
-	//						//						varOrValue[tempIndex] = subQuery.charAt(index);
-	//					}
-	//
-	//					if(operand.contains(String.valueOf(subQuery.charAt(index))))
-	//						parseTree.push(String.valueOf(varOrValue).trim());
-	//					else
-	//					{
-	//
-	//						String computed = computeValue(String.valueOf(varOrValue).trim(), row, table.getHeader());
-	//						String operator = parseTree.pop();
-	//						String colNameValue = parseTree.pop();
-	//						int colNameValueInt = 0;
-	//						int computedInt = 0;
-	//
-	//						for (int j = 0; j < table.getHeader().size(); j++) 
-	//						{
-	//							colNameValue = colNameValue.replaceFirst(table.getHeader().get(j), row.getColumns().get(table.getHeader().get(i)));
-	//						}
-	//						try			//integer compare case
-	//						{
-	//							colNameValueInt = Integer.parseInt(colNameValue);
-	//							computedInt = Integer.parseInt(computed);
-	//							switch (operator) 
-	//							{
-	//							case ">=":
-	//								if(colNameValueInt >= computedInt)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "<=":
-	//								if(colNameValueInt <= computedInt)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "=":
-	//								if(colNameValueInt == computedInt)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case ">":
-	//								if(colNameValueInt > computedInt)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "<":
-	//								if(colNameValueInt < computedInt)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							default:
-	//								break;
-	//							}
-	//						}
-	//						catch(Exception e)		//String compare case:
-	//						{
-	//							switch (operator) 
-	//							{
-	//							case ">=":
-	//								if(colNameValue.compareTo(computed) >= 0)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "<=":
-	//								if(colNameValue.compareTo(computed) <= 0)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "=":
-	//								if(colNameValue.compareTo(computed) == 0)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case ">":
-	//								if(colNameValue.compareTo(computed) > 0)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							case "<":
-	//								if(colNameValue.compareTo(computed) < 0)
-	//									parseTree.push("@");	//push True;
-	//								else
-	//									parseTree.push("#");	//push False;
-	//								break;
-	//							default:
-	//								break;
-	//							}
-	//						}
-	//						String top = parseTree.peek();
-	//						parseTree.pop();
-	//						parseTree.pop();
-	//						parseTree.push(top);
-	//						if(index != subQuery.length() - 1)
-	//							index++;
-	//					}
-	//
-	//				}
-	//				System.out.println("index: "+index);
-	//				if(index == subQuery.length())
-	//					done = true;
-	//			}
-	//			if(parseTree.size() >= 2)
-	//			{
-	//				String firstPop = parseTree.pop();
-	//				String operator = parseTree.pop();
-	//				String secondPop = parseTree.pop();
-	//
-	//				switch (operator) {
-	//				case "&":
-	//					if(firstPop == "@" && secondPop == "@")
-	//						parseTree.push("@");
-	//					else
-	//						parseTree.push("#");
-	//
-	//				case "|":
-	//					if(firstPop == "#" && secondPop == "#")
-	//						parseTree.push("#");
-	//					else
-	//						parseTree.push("@");
-	//					break;
-	//
-	//				default:
-	//					break;
-	//				}
-	//			}
-	//			if(parseTree.pop() == "@")
-	//				selectedRows.add(new Boolean(true));
-	//			else
-	//				selectedRows.add(new Boolean(false));
-	//
-	//		}
-	//		return selectedRows;
-	//
-	//	}
-
-	public static String computeValue(String computable, Row row, LinkedList<String> tableHeader)
-	{
+	public static String computeValue(String computable, Row row, LinkedList<String> tableHeader) {
 		String out = "";
-		for (int i = 0; i < tableHeader.size(); i++) 
-		{
-			//TODO: cannot have two colName in compute value!!
+		for (int i = 0; i < tableHeader.size(); i++) {
+			// TODO: cannot have two colName in compute value!!
 			computable = computable.replaceFirst(tableHeader.get(i), row.getColumns().get(tableHeader.get(i)));
 
 		}
-		//TODO: minus is not considered!
-		if(Character.isDigit(computable.charAt(0)))
-		{
-			if(!computable.contains("+")&&!computable.contains("-")&&!computable.contains("*")&&!computable.contains("/")) {
-				List<String>oneNum=new ArrayList<>();
-				int count=0;
-				while(count!=computable.length()) {
-					oneNum.add(computable.charAt(count)+"");
+		// TODO: minus is not considered!
+		if (Character.isDigit(computable.charAt(0))) {
+			if (!computable.contains("+") && !computable.contains("-") && !computable.contains("*")
+					&& !computable.contains("/")) {
+				List<String> oneNum = new ArrayList<>();
+				int count = 0;
+				while (count != computable.length()) {
+					oneNum.add(computable.charAt(count) + "");
 					count++;
 				}
 				StringBuilder listString = new StringBuilder();
 				for (String s : oneNum)
-					listString.append(s+"");
-				return Integer.parseInt(listString.toString())+"";
+					listString.append(s + "");
+				return Integer.parseInt(listString.toString()) + "";
 			}
-			int count=0;
-			Integer num=null;
+			int count = 0;
+			Integer num = null;
 			char lastOperand = 0;
-			List<String>oneNum=new ArrayList<>();
-			while(count!=computable.length()+1) {
-				if(count!=computable.length()&&Character.isDigit(computable.charAt(count))) {
-					oneNum.add(computable.charAt(count)+"");
+			List<String> oneNum = new ArrayList<>();
+			while (count != computable.length() + 1) {
+				if (count != computable.length() && Character.isDigit(computable.charAt(count))) {
+					oneNum.add(computable.charAt(count) + "");
 					count++;
 					continue;
-				}
-				else if(num==null) {
+				} else if (num == null) {
 					StringBuilder listString = new StringBuilder();
 					for (String s : oneNum)
-						listString.append(s+"");
-					num=Integer.parseInt(listString.toString());
-					lastOperand=computable.charAt(count);
+						listString.append(s + "");
+					num = Integer.parseInt(listString.toString());
+					lastOperand = computable.charAt(count);
 					count++;
-					oneNum=new ArrayList<>();
-				}
-				else {
+					oneNum = new ArrayList<>();
+				} else {
 					StringBuilder listString = new StringBuilder();
 					for (String s : oneNum)
-						listString.append(s+"");
+						listString.append(s + "");
 					switch (lastOperand) {
 					case '+':
-						num+=Integer.parseInt(listString.toString());
+						num += Integer.parseInt(listString.toString());
 						break;
 					case '-':
-						num-=Integer.parseInt(listString.toString());
+						num -= Integer.parseInt(listString.toString());
 						break;
 					case '*':
-						num*=Integer.parseInt(listString.toString());
+						num *= Integer.parseInt(listString.toString());
 						break;
 					case '/':
-						num/=Integer.parseInt(listString.toString());
+						num /= Integer.parseInt(listString.toString());
 						break;
 					}
-					if(count==computable.length())
+					if (count == computable.length())
 						break;
-					lastOperand=computable.charAt(count);
+					lastOperand = computable.charAt(count);
 					count++;
-					oneNum=new ArrayList<>();
+					oneNum = new ArrayList<>();
 				}
 			}
-			out=String.valueOf(num);
-		}
-		else
-		{
+			out = String.valueOf(num);
+		} else {
 			String[] splited = computable.split("\\+");
-			for (int i = 0; i < splited.length; i++) 
-			{
+			for (int i = 0; i < splited.length; i++) {
 				out += splited[i];
 			}
 		}
@@ -491,40 +247,12 @@ public class Parser
 		return out;
 	}
 
-	public static boolean isRowDependent(String computable, LinkedList<String> tableHeader)
-	{
-		for (int i = 0; i < tableHeader.size(); i++) 
-		{
-			if(computable.contains(tableHeader.get(i)))
-			{
+	public static boolean isRowDependent(String computable, LinkedList<String> tableHeader) {
+		for (int i = 0; i < tableHeader.size(); i++) {
+			if (computable.contains(tableHeader.get(i))) {
 				return true;
 			}
 		}
 		return false;
 	}
-	//
-	//	public static void main(String[] args) {
-	//		String a="12+13";
-	//		//		for (String str : "asd+asdf+12".split("+")) 
-	//		//		{
-	//		//			System.out.println(str);
-	//		//		}
-	//
-	//		LinkedList<String> header = new LinkedList<String>();
-	//		header.add("A");
-	//		header.add("B");
-	//		Row row = new Row();
-	//		row.getRow().add("1");
-	//		row.getRow().add("4");
-	//		Table table = new Table("test", header, null);
-	//		table.setHeader(header);
-	//		LinkedList<Row> rows = new LinkedList<>();
-	//		rows.add(row);
-	//		table.setRows(rows);
-	//		System.out.println(parseWHEREClause("((B=1) OR (B=2)) AND (A=1)", table));
-	//		//		String str1 = "09";
-	//		//		String str2 = "10";
-	//		//		System.out.println(str1.compareTo(str2));
-	//		//		System.out.println(computeValue(str, row, header));
-	//	}
 }
